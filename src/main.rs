@@ -1,10 +1,18 @@
-use std::{array, char, iter, time::Instant};
+use std::{
+    array, char,
+    fs::File,
+    io::{BufRead, BufReader},
+    iter,
+    time::Instant,
+};
 
 fn main() {
     let now = Instant::now();
     day_one();
     let elapsed = now.elapsed();
     println!("day 1: {elapsed:?}");
+
+    day_two();
 
     let now = Instant::now();
     let res = day_three_one(&std::fs::read_to_string("input/day3.txt").unwrap());
@@ -24,6 +32,152 @@ fn main() {
     let res = day_four_two(&std::fs::read_to_string("input/day4.txt").unwrap());
     let elapsed = now.elapsed();
     println!("day 4 2: {elapsed:?} {res}");
+
+    let now = Instant::now();
+    let res = day_five_one(&std::fs::read_to_string("input/day5.txt").unwrap());
+    let elapsed = now.elapsed();
+    println!("day 5 1: {elapsed:?} {res}");
+
+    let now = Instant::now();
+    let res = day_five_two(&std::fs::read_to_string("input/day5.txt").unwrap());
+    let elapsed = now.elapsed();
+    println!("day 5 2: {elapsed:?} {res}");
+}
+
+#[derive(Clone, Default, PartialEq, Eq)]
+struct Page {
+    // pub before: Vec<usize>,
+    pub after: Vec<usize>,
+}
+
+fn day_five_two(inp: &str) -> usize {
+    let mut ps = Vec::new();
+    ps.resize(100, None);
+    let mut total: usize = 0;
+    for line in inp.lines() {
+        if line.contains('|') {
+            let nos: Vec<usize> = line.split('|').map(|x| x.parse().unwrap()).collect();
+
+            ps[nos[1]] = ps[nos[1]]
+                .clone()
+                .map(|mut x: Page| {
+                    x.after.push(nos[0]);
+                    x
+                })
+                .or_else(|| {
+                    Some(Page {
+                        // before: Vec::new(),
+                        after: vec![nos[0]],
+                    })
+                });
+        }
+
+        if line.contains(',') {
+            let nos = line
+                .split(',')
+                .map(|x| x.parse().unwrap())
+                .collect::<Vec<usize>>();
+
+            let mut safe = true;
+
+            'outer: for i in 0..nos.len() {
+                for j in i + 1..nos.len() {
+                    if ps[nos[i]]
+                        .as_ref()
+                        .is_some_and(|x| x.after.contains(&nos[j]))
+                    {
+                        safe = false;
+                        break 'outer;
+                    }
+                }
+            }
+
+            if !safe {
+                let nos = permute_day_five(&nos, &[], &ps);
+                total += nos[nos.len() / 2];
+            }
+        }
+    }
+
+    total
+}
+
+fn permute_day_five(list: &[usize], acc: &[usize], ps: &[Option<Page>]) -> Vec<usize> {
+    // 6456 works but.... well >80 seconds
+    for j in 1..acc.len() {
+        if ps[acc[0]]
+            .as_ref()
+            .is_some_and(|x| x.after.contains(&acc[j]))
+        {
+            return Vec::new();
+        }
+    }
+
+    for i in 0..list.len() {
+        let mut new_acc = acc.to_vec();
+        new_acc.insert(0, list[i]);
+        let mut new_list = list.to_vec();
+        new_list.remove(i);
+
+        let news = permute_day_five(&new_list, &new_acc, ps);
+        if !news.is_empty() {
+            return news;
+        }
+    }
+    if list.is_empty() {
+        acc.to_vec()
+    } else {
+        vec![]
+    }
+}
+
+fn day_five_one(inp: &str) -> usize {
+    let mut ps = Vec::new();
+    ps.resize(100, None);
+    let mut total = 0;
+    for line in inp.lines() {
+        if line.contains('|') {
+            let nos: Vec<usize> = line.split('|').map(|x| x.parse().unwrap()).collect();
+            ps[nos[1]] = ps[nos[1]]
+                .clone()
+                .map(|mut x: Page| {
+                    x.after.push(nos[0]);
+                    x
+                })
+                .or_else(|| {
+                    Some(Page {
+                        after: vec![nos[0]],
+                    })
+                });
+        }
+
+        if line.contains(',') {
+            let nos = line
+                .split(',')
+                .map(|x| x.parse().unwrap())
+                .collect::<Vec<usize>>();
+
+            let mut safe = true;
+
+            'outer: for i in 0..nos.len() {
+                for j in i + 1..nos.len() {
+                    if ps[nos[i]]
+                        .as_ref()
+                        .is_some_and(|x| x.after.contains(&nos[j]))
+                    {
+                        safe = false;
+                        break 'outer;
+                    }
+                }
+            }
+
+            if safe {
+                total += nos[nos.len() / 2];
+            }
+        }
+    }
+
+    total
 }
 
 fn day_four_one(inp: &str) -> usize {
@@ -196,6 +350,73 @@ mod tests {
     use super::*;
 
     #[test]
+    fn day_five() {
+        let res = day_five_one(
+            "47|53
+97|13
+97|61
+97|47
+75|29
+61|13
+75|53
+29|13
+97|29
+53|29
+61|53
+97|53
+61|29
+47|13
+75|47
+97|75
+47|61
+75|61
+47|29
+75|13
+53|13
+
+75,47,61,53,29
+97,61,53,29,13
+75,29,13
+75,97,47,61,53
+61,13,29
+97,13,75,29,47",
+        );
+        assert_eq!(res, 143);
+
+        let res = day_five_two(
+            "47|53
+97|13
+97|61
+97|47
+75|29
+61|13
+75|53
+29|13
+97|29
+53|29
+61|53
+97|53
+61|29
+47|13
+75|47
+97|75
+47|61
+75|61
+47|29
+75|13
+53|13
+
+75,47,61,53,29
+97,61,53,29,13
+75,29,13
+75,97,47,61,53
+61,13,29
+97,13,75,29,47",
+        );
+        assert_eq!(res, 123)
+    }
+
+    #[test]
     fn day_four() {
         let result = day_four_one(
             "MMMSXXMASM
@@ -280,4 +501,161 @@ fn day_one() {
         .sum::<usize>();
 
     println!("{lol}")
+}
+
+#[derive(PartialEq, Eq, Debug)]
+
+enum Order {
+    Asc,
+
+    Desc,
+}
+
+fn get_order(vec: &[usize]) -> Option<Order> {
+    if vec.len() < 3 {
+        None
+    } else if vec[0] < vec[1] && vec[1] < vec[2] {
+        Some(Order::Asc)
+    } else if vec[0] > vec[1] && vec[1] > vec[2] {
+        Some(Order::Desc)
+    } else {
+        None
+    }
+}
+
+fn safe(vec: &[usize]) -> bool {
+    match get_order(vec) {
+        Some(x) => safe_order(vec, &x),
+
+        None if vec.len() > 2 => false,
+
+        _ => safe_order(vec, &Order::Asc) || safe_order(vec, &Order::Desc),
+    }
+}
+
+fn safe2(vec: &[usize]) -> bool {
+    match get_order(vec) {
+        Some(x) => safe2_order(vec, &x),
+
+        _ => safe2_order(vec, &Order::Asc) || safe2_order(vec, &Order::Desc),
+    }
+}
+
+fn safe_order(vec: &[usize], order: &Order) -> bool {
+    let mut safe = true;
+
+    let mut prev = vec[0];
+
+    for n in &vec[1..] {
+        let next = *n;
+
+        if unsafe_combo(prev, next, order) {
+            safe = false;
+
+            break;
+        }
+
+        prev = next;
+    }
+
+    safe
+}
+
+fn safe2_order(vec: &[usize], order: &Order) -> bool {
+    let mut safe = true;
+
+    let mut prev = vec[0];
+
+    let mut skipped: Option<usize> = None;
+
+    let mut i = 0;
+
+    for n in &vec[1..] {
+        i += 1;
+
+        let next = *n;
+
+        if unsafe_combo(prev, next, order) {
+            if skipped.is_none() {
+                skipped = Some(i);
+
+                break;
+            }
+
+            safe = false;
+
+            break;
+        }
+
+        prev = next;
+    }
+
+    if safe && skipped.is_none() {
+        return true;
+    }
+
+    let problem = skipped.unwrap();
+
+    let mut try1 = vec[problem..].to_vec();
+
+    if problem > 1 {
+        try1.insert(0, vec[problem - 2]);
+    }
+
+    let try1 = safe_order(&try1, order);
+
+    if try1 {
+        return try1;
+    }
+
+    let mut try2 = vec[(problem - 1)..].to_vec();
+
+    try2.remove(1);
+
+    safe_order(&try2, order)
+}
+
+fn unsafe_combo(prev: usize, next: usize, order: &Order) -> bool {
+    (order == &Order::Desc && (prev <= next || (prev - next) > 3))
+        || (order == &Order::Asc && (next <= prev || (next - prev) > 3))
+}
+
+fn day_two() {
+    let now = Instant::now();
+
+    let file = File::open("input/day2.txt").unwrap();
+
+    let res1 = BufReader::new(file)
+        .lines()
+        .map(|line| {
+            line.unwrap()
+                .split(char::is_whitespace)
+                .map(|n| n.parse::<usize>().unwrap())
+                .collect::<Vec<usize>>()
+        })
+        .filter(|x| safe(x))
+        .count();
+
+    let elapsed = now.elapsed();
+
+    println!("{res1} -- {elapsed:.2?}");
+
+    let now = Instant::now();
+
+    let file = File::open("input/day2.txt").unwrap();
+
+    let res2 = BufReader::new(file)
+        .lines()
+        .map(|line| {
+            line.unwrap()
+                .split(char::is_whitespace)
+                .map(|n| n.parse::<usize>().unwrap())
+                .collect::<Vec<usize>>()
+        })
+        .filter(|x| safe2(x))
+        .count();
+
+    let elapsed = now.elapsed();
+
+    println!("{res2} -- {elapsed:.2?}")
 }
