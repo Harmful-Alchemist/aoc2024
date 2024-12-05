@@ -107,7 +107,7 @@ fn permute_day_five(list: &[usize], acc: &[usize], ps: &[Option<Page>]) -> Vec<u
         return acc.to_vec();
     }
     let x = list
-        .into_iter()
+        .iter()
         .enumerate()
         .find(|(i, x)| {
             let mut nos = list.to_vec();
@@ -123,35 +123,6 @@ fn permute_day_five(list: &[usize], acc: &[usize], ps: &[Option<Page>]) -> Vec<u
     new_list.remove(x.0);
     permute_day_five(&new_list, &new_acc, ps)
 }
-
-// fn permute_day_five(list: &[usize], acc: &[usize], ps: &[Option<Page>]) -> Vec<usize> {
-//     // 6456 works but.... well >80 seconds
-//     for j in 1..acc.len() {
-//         if ps[acc[0]]
-//             .as_ref()
-//             .is_some_and(|x| x.after.contains(&acc[j]))
-//         {
-//             return Vec::new();
-//         }
-//     }
-
-//     for i in 0..list.len() {
-//         let mut new_acc = acc.to_vec();
-//         new_acc.insert(0, list[i]);
-//         let mut new_list = list.to_vec();
-//         new_list.remove(i);
-
-//         let news = permute_day_five(&new_list, &new_acc, ps);
-//         if !news.is_empty() {
-//             return news;
-//         }
-//     }
-//     if list.is_empty() {
-//         acc.to_vec()
-//     } else {
-//         vec![]
-//     }
-// }
 
 fn day_five_one(inp: &str) -> usize {
     let mut ps = Vec::new();
