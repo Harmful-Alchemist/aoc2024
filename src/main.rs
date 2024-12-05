@@ -46,7 +46,6 @@ fn main() {
 
 #[derive(Clone, Default, PartialEq, Eq)]
 struct Page {
-    // pub before: Vec<usize>,
     pub after: Vec<usize>,
 }
 
@@ -66,7 +65,6 @@ fn day_five_two(inp: &str) -> usize {
                 })
                 .or_else(|| {
                     Some(Page {
-                        // before: Vec::new(),
                         after: vec![nos[0]],
                     })
                 });
