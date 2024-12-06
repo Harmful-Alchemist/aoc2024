@@ -4,6 +4,7 @@ use std::{
     fs::File,
     io::{BufRead, BufReader},
     iter,
+    thread::{self, JoinHandle},
     time::Instant,
 };
 
@@ -30,7 +31,7 @@ fn main() {
 
 fn run(f: fn(&str) -> usize, day: usize, part: usize) {
     let now = Instant::now();
-    let res = f(&std::fs::read_to_string(&format!("input/day{day}.txt")).unwrap());
+    let res = f(&std::fs::read_to_string(format!("input/day{day}.txt")).unwrap());
     let elapsed = now.elapsed();
     println!("day {day} {part}: {elapsed:?} {res}");
 }
@@ -85,38 +86,50 @@ fn day_six_two(inp: &str) -> usize {
             break;
         }
     }
-
-    let mut total = 0;
+    let mut visited_vec = Vec::new();
     for x in visited {
-        if x == orig_guard_pos {
-            continue;
-        };
-
-        let mut known: Vec<Vec<Vec<Dir>>> = Vec::new();
-        known.resize_with(y_len, Vec::new);
-        for x in &mut known {
-            x.resize_with(x_len, Vec::new);
-        }
-        guard_pos = orig_guard_pos;
-        current_dir = orig_dir;
-        let mut new_lab = lab.clone();
-        new_lab[x.0][x.1] = Pos::Obstacle;
-        while let Some(new_pos) = current_dir.new_pos(guard_pos, x_len, y_len) {
-            if new_lab[new_pos.0][new_pos.1] == Pos::Obstacle {
-                if known[guard_pos.0][guard_pos.1].contains(&current_dir) {
-                    total += 1;
-                    break;
-                } else {
-                    known[guard_pos.0][guard_pos.1].push(current_dir);
-                }
-
-                current_dir = current_dir.rotate();
-            } else {
-                guard_pos = new_pos;
-            }
-        }
+        visited_vec.push(x);
     }
-    total
+    let mut res: Vec<JoinHandle<usize>> = Vec::new();
+    visited_vec.chunks(64).for_each(|visited| {
+        let lab = lab.clone();
+        let visited = visited.to_vec();
+        let handle = thread::spawn(move || {
+            let mut total: usize = 0;
+            for x in visited {
+                if x == orig_guard_pos {
+                    continue;
+                };
+
+                let mut known: Vec<Vec<Vec<Dir>>> = Vec::new();
+                known.resize_with(y_len, Vec::new);
+                for x in &mut known {
+                    x.resize_with(x_len, Vec::new);
+                }
+                guard_pos = orig_guard_pos;
+                current_dir = orig_dir;
+                let mut new_lab = lab.clone();
+                new_lab[x.0][x.1] = Pos::Obstacle;
+                while let Some(new_pos) = current_dir.new_pos(guard_pos, x_len, y_len) {
+                    if new_lab[new_pos.0][new_pos.1] == Pos::Obstacle {
+                        if known[guard_pos.0][guard_pos.1].contains(&current_dir) {
+                            total += 1;
+                            break;
+                        } else {
+                            known[guard_pos.0][guard_pos.1].push(current_dir);
+                        }
+
+                        current_dir = current_dir.rotate();
+                    } else {
+                        guard_pos = new_pos;
+                    }
+                }
+            }
+            total
+        });
+        res.push(handle);
+    });
+    res.into_iter().map(|h| h.join().unwrap()).sum()
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
