@@ -15,44 +15,24 @@ fn main() {
 
     day_two();
 
-    let now = Instant::now();
-    let res = day_three_one(&std::fs::read_to_string("input/day3.txt").unwrap());
-    let elapsed = now.elapsed();
-    println!("day 3 1: {elapsed:?} {res}");
-    let now = Instant::now();
-    let res = day_three_two(&std::fs::read_to_string("input/day3.txt").unwrap());
-    let elapsed = now.elapsed();
-    println!("day 3 2: {elapsed:?} {res}");
+    run(day_three_one, 3, 1);
+    run(day_three_two, 3, 2);
 
-    let now = Instant::now();
-    let res = day_four_one(&std::fs::read_to_string("input/day4.txt").unwrap());
-    let elapsed = now.elapsed();
-    println!("day 4 1: {elapsed:?} {res}");
+    run(day_four_one, 4, 1);
+    run(day_four_two, 4, 2);
 
-    let now = Instant::now();
-    let res = day_four_two(&std::fs::read_to_string("input/day4.txt").unwrap());
-    let elapsed = now.elapsed();
-    println!("day 4 2: {elapsed:?} {res}");
+    run(day_five_one, 5, 1);
+    run(day_five_two, 5, 2);
 
-    let now = Instant::now();
-    let res = day_five_one(&std::fs::read_to_string("input/day5.txt").unwrap());
-    let elapsed = now.elapsed();
-    println!("day 5 1: {elapsed:?} {res}");
+    run(day_six_one, 6, 1);
+    run(day_six_two, 6, 2);
+}
 
+fn run(f: fn(&str) -> usize, day: usize, part: usize) {
     let now = Instant::now();
-    let res = day_five_two(&std::fs::read_to_string("input/day5.txt").unwrap());
+    let res = f(&std::fs::read_to_string(&format!("input/day{day}.txt")).unwrap());
     let elapsed = now.elapsed();
-    println!("day 5 2: {elapsed:?} {res}");
-
-    let now = Instant::now();
-    let res = day_six_one(&std::fs::read_to_string("input/day6.txt").unwrap());
-    let elapsed = now.elapsed();
-    println!("day 6 1: {elapsed:?} {res}");
-
-    let now = Instant::now();
-    let res = day_six_two(&std::fs::read_to_string("input/day6.txt").unwrap());
-    let elapsed = now.elapsed();
-    println!("day 6 2: {elapsed:?} {res}");
+    println!("day {day} {part}: {elapsed:?} {res}");
 }
 
 fn day_six_two(inp: &str) -> usize {
@@ -429,7 +409,7 @@ fn is_good_pos(i: usize, line_len: i32) -> bool {
     i % line_len != 0 && i % line_len != line_len - 1
 }
 
-fn day_three_two(inp: &str) -> i32 {
+fn day_three_two(inp: &str) -> usize {
     let mut new_str = String::new();
     let hmm: Vec<&str> = inp.split("don't()").collect();
     new_str.push_str(hmm[0]);
@@ -443,7 +423,7 @@ fn day_three_two(inp: &str) -> i32 {
     day_three_one(&new_str)
 }
 
-fn day_three_one(inp: &str) -> i32 {
+fn day_three_one(inp: &str) -> usize {
     let mut ind = 0;
     let mut lhs = 0;
     let mut rhs = 0;
@@ -500,7 +480,7 @@ fn day_three_one(inp: &str) -> i32 {
         }
         _ => panic!(),
     });
-    total
+    total as usize
 }
 
 enum PR {
