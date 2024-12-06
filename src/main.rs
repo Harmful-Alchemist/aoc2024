@@ -111,38 +111,37 @@ fn day_six_two(inp: &str) -> usize {
         if x == orig_guard_pos {
             continue;
         };
-        let mut new_visited = HashSet::new();
-        let mut prev_rounds: Vec<HashSet<(usize, usize)>> = Vec::new();
+
+        let mut known = Vec::new();
+        known.resize_with(x_len * y_len, Vec::new);
         guard_pos = orig_guard_pos;
         current_dir = orig_dir;
         let mut new_lab = lab.clone();
         new_lab[x.0][x.1] = Pos::Obstacle;
-        loop {
-            if !new_visited.insert(guard_pos) {
-                if prev_rounds.contains(&new_visited) {
+        while let Some(new_pos) = current_dir.new_pos(guard_pos, x_len, y_len) {
+            if new_lab[new_pos.0][new_pos.1] == Pos::Obstacle {
+                if known[guard_pos.0 * guard_pos.1]
+                    .iter()
+                    .filter(|d| **d == current_dir)
+                    .count()
+                    > 1
+                {
                     total += 1;
                     break;
                 } else {
-                    prev_rounds.push(new_visited.clone());
-                    new_visited = HashSet::new();
-                    new_visited.insert(guard_pos);
+                    known[guard_pos.0 * guard_pos.1].push(current_dir);
                 }
-            };
-            if let Some(new_pos) = current_dir.new_pos(guard_pos, x_len, y_len) {
-                if new_lab[new_pos.0][new_pos.1] == Pos::Obstacle {
-                    current_dir = current_dir.rotate();
-                } else {
-                    guard_pos = new_pos;
-                }
+
+                current_dir = current_dir.rotate();
             } else {
-                break;
+                guard_pos = new_pos;
             }
         }
     }
     total
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 enum Dir {
     Up,
     Down,
