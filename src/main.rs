@@ -1,5 +1,6 @@
 use std::{
     array, char,
+    collections::HashSet,
     fs::File,
     io::{BufRead, BufReader},
     iter,
@@ -42,6 +43,200 @@ fn main() {
     let res = day_five_two(&std::fs::read_to_string("input/day5.txt").unwrap());
     let elapsed = now.elapsed();
     println!("day 5 2: {elapsed:?} {res}");
+
+    let now = Instant::now();
+    let res = day_six_one(&std::fs::read_to_string("input/day6.txt").unwrap());
+    let elapsed = now.elapsed();
+    println!("day 6 1: {elapsed:?} {res}");
+
+    let now = Instant::now();
+    let res = day_six_two(&std::fs::read_to_string("input/day6.txt").unwrap());
+    let elapsed = now.elapsed();
+    println!("day 6 2: {elapsed:?} {res}");
+}
+
+fn day_six_two(inp: &str) -> usize {
+    let mut guard_pos = (0, 0);
+    let mut visited = HashSet::new();
+
+    let lab: Vec<Vec<Pos>> = inp
+        .lines()
+        .enumerate()
+        .map(|(i, line)| {
+            line.chars()
+                .enumerate()
+                .map(|(j, c)| match c {
+                    '.' => Pos::Dot,
+                    '#' => Pos::Obstacle,
+                    '^' | 'v' | '<' | '>' => {
+                        guard_pos = (i, j);
+                        match c {
+                            '^' => Pos::Guard(Dir::Up),
+                            'v' => Pos::Guard(Dir::Down),
+                            '<' => Pos::Guard(Dir::Left),
+                            '>' => Pos::Guard(Dir::Right),
+                            _ => panic!(),
+                        }
+                    }
+                    _ => panic!(),
+                })
+                .collect::<Vec<Pos>>()
+        })
+        .collect();
+    let x_len = lab.len();
+    let y_len = lab[0].len();
+    let mut current_dir = if let Pos::Guard(dir) = lab[guard_pos.0][guard_pos.1] {
+        dir
+    } else {
+        panic!()
+    };
+    let orig_dir = current_dir;
+    let orig_guard_pos = guard_pos;
+
+    loop {
+        visited.insert(guard_pos);
+        if let Some(new_pos) = current_dir.new_pos(guard_pos, x_len, y_len) {
+            if lab[new_pos.0][new_pos.1] == Pos::Obstacle {
+                current_dir = current_dir.rotate();
+            } else {
+                guard_pos = new_pos;
+            }
+        } else {
+            break;
+        }
+    }
+
+    let mut total = 0;
+    // dbg!(visited.len());
+    // let mut huh = Vec::new();
+    // for x in visited { huh.push(x);}
+    // huh.sort();
+    // huh.reverse();
+    for x in visited {
+        if x == orig_guard_pos {
+            continue;
+        };
+        let mut new_visited = HashSet::new();
+        let mut prev_rounds: Vec<HashSet<(usize, usize)>> = Vec::new();
+        guard_pos = orig_guard_pos;
+        current_dir = orig_dir;
+        let mut new_lab = lab.clone();
+        new_lab[x.0][x.1] = Pos::Obstacle;
+        loop {
+            if !new_visited.insert(guard_pos) {
+                if prev_rounds.contains(&new_visited) {
+                    total += 1;
+                    break;
+                } else {
+                    prev_rounds.push(new_visited.clone());
+                    new_visited = HashSet::new();
+                    new_visited.insert(guard_pos);
+                }
+            };
+            if let Some(new_pos) = current_dir.new_pos(guard_pos, x_len, y_len) {
+                if new_lab[new_pos.0][new_pos.1] == Pos::Obstacle {
+                    current_dir = current_dir.rotate();
+                } else {
+                    guard_pos = new_pos;
+                }
+            } else {
+                break;
+            }
+        }
+    }
+    total
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Dir {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
+impl Dir {
+    fn new_pos(
+        &self,
+        (old_pos_x, old_pos_y): (usize, usize),
+        x_len: usize,
+        y_len: usize,
+    ) -> Option<(usize, usize)> {
+        match self {
+            Dir::Down if old_pos_x < x_len - 1 => Some((old_pos_x + 1, old_pos_y)),
+            Dir::Up if old_pos_x > 0 => Some((old_pos_x - 1, old_pos_y)),
+            Dir::Left if old_pos_y > 0 => Some((old_pos_x, old_pos_y - 1)),
+            Dir::Right if old_pos_y < y_len - 1 => Some((old_pos_x, old_pos_y + 1)),
+            _ => None,
+        }
+    }
+
+    fn rotate(&self) -> Self {
+        match self {
+            Dir::Up => Dir::Right,
+            Dir::Down => Dir::Left,
+            Dir::Left => Dir::Up,
+            Dir::Right => Dir::Down,
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Copy)]
+enum Pos {
+    Dot,
+    Obstacle,
+    Guard(Dir),
+}
+
+fn day_six_one(inp: &str) -> usize {
+    let mut guard_pos = (0, 0);
+    let mut visited = HashSet::new();
+
+    let lab: Vec<Vec<Pos>> = inp
+        .lines()
+        .enumerate()
+        .map(|(i, line)| {
+            line.chars()
+                .enumerate()
+                .map(|(j, c)| match c {
+                    '.' => Pos::Dot,
+                    '#' => Pos::Obstacle,
+                    '^' | 'v' | '<' | '>' => {
+                        guard_pos = (i, j);
+                        match c {
+                            '^' => Pos::Guard(Dir::Up),
+                            'v' => Pos::Guard(Dir::Down),
+                            '<' => Pos::Guard(Dir::Left),
+                            '>' => Pos::Guard(Dir::Right),
+                            _ => panic!(),
+                        }
+                    }
+                    _ => panic!(),
+                })
+                .collect::<Vec<Pos>>()
+        })
+        .collect();
+    let x_len = lab.len();
+    let y_len = lab[0].len();
+    let mut current_dir = if let Pos::Guard(dir) = lab[guard_pos.0][guard_pos.1] {
+        dir
+    } else {
+        panic!()
+    };
+
+    loop {
+        visited.insert(guard_pos);
+        if let Some(new_pos) = current_dir.new_pos(guard_pos, x_len, y_len) {
+            if lab[new_pos.0][new_pos.1] == Pos::Obstacle {
+                current_dir = current_dir.rotate();
+            } else {
+                guard_pos = new_pos;
+            }
+        } else {
+            break;
+        }
+    }
+    visited.len()
 }
 
 #[derive(Clone, Default, PartialEq, Eq)]
@@ -339,6 +534,26 @@ fn number() -> Box<dyn Fn(char) -> PR> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn day_six() {
+        let inp = "....#.....
+.........#
+..........
+..#.......
+.......#..
+..........
+.#..^.....
+........#.
+#.........
+......#...";
+
+        let res = day_six_one(inp);
+        assert_eq!(res, 41);
+
+        let res = day_six_two(inp);
+        assert_eq!(res, 6);
+    }
 
     #[test]
     fn day_five() {
