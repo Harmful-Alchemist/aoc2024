@@ -107,7 +107,6 @@ fn day_six_two(inp: &str) -> usize {
     }
 
     let mut total = 0;
-    let mut known_loops = Vec::new();
     for x in visited {
         if x == orig_guard_pos {
             continue;
@@ -121,13 +120,9 @@ fn day_six_two(inp: &str) -> usize {
         loop {
             if !new_visited.insert(guard_pos) {
                 if prev_rounds.contains(&new_visited) {
-                    known_loops.push(new_visited);
                     total += 1;
                     break;
-                } else if known_loops.contains(&new_visited) {
-                    total += 1;
-                    break;
-                }else {
+                } else {
                     prev_rounds.push(new_visited.clone());
                     new_visited = HashSet::new();
                     new_visited.insert(guard_pos);
