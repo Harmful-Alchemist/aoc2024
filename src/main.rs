@@ -112,24 +112,22 @@ fn day_six_two(inp: &str) -> usize {
             continue;
         };
 
-        let mut known = Vec::new();
-        known.resize_with(x_len * y_len, Vec::new);
+        let mut known: Vec<Vec<Vec<Dir>>> = Vec::new();
+        known.resize_with(y_len, Vec::new);
+        for x in &mut known {
+            x.resize_with(x_len, Vec::new);
+        }
         guard_pos = orig_guard_pos;
         current_dir = orig_dir;
         let mut new_lab = lab.clone();
         new_lab[x.0][x.1] = Pos::Obstacle;
         while let Some(new_pos) = current_dir.new_pos(guard_pos, x_len, y_len) {
             if new_lab[new_pos.0][new_pos.1] == Pos::Obstacle {
-                if known[guard_pos.0 * guard_pos.1]
-                    .iter()
-                    .filter(|d| **d == current_dir)
-                    .count()
-                    > 1
-                {
+                if known[guard_pos.0][guard_pos.1].contains(&current_dir) {
                     total += 1;
                     break;
                 } else {
-                    known[guard_pos.0 * guard_pos.1].push(current_dir);
+                    known[guard_pos.0][guard_pos.1].push(current_dir);
                 }
 
                 current_dir = current_dir.rotate();
