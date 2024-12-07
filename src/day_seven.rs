@@ -7,9 +7,7 @@ struct Line {
 }
 
 fn concat(x: usize, y: usize) -> usize {
-    let mut x = x.to_string();
-    x.push_str(&y.to_string());
-    x.parse().unwrap()
+    x * (10f64.powf(((y+1) as f64).log10().ceil()) as usize) + y
 }
 
 impl Line {
