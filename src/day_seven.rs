@@ -32,7 +32,6 @@ impl Line {
     }
 
     fn value(&self) -> usize {
-        // let mut ops_perms = Vec::new();
         let ops_count = self.numbers.len() - 1;
 
         for i in 0..(1 << ops_count) {
@@ -98,7 +97,6 @@ pub fn day_seven_one(inp: &str) -> usize {
 }
 
 pub fn day_seven_two(inp: &str) -> usize {
-    //354060705047464
     let mut handles: Vec<JoinHandle<usize>> = Vec::new();
     inp.lines().filter_map(Line::new).for_each(|line| {
         let handle = thread::spawn(move || line.value2());
