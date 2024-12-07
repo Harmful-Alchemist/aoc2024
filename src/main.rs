@@ -7,6 +7,7 @@ use std::{
     thread::{self, JoinHandle},
     time::Instant,
 };
+mod day_seven;
 
 fn main() {
     let now = Instant::now();
@@ -27,6 +28,9 @@ fn main() {
 
     run(day_six_one, 6, 1);
     run(day_six_two, 6, 2);
+
+    run(day_seven::day_seven_one, 7, 1);
+    run(day_seven::day_seven_two, 7, 2);
 }
 
 fn run(f: fn(&str) -> usize, day: usize, part: usize) {
