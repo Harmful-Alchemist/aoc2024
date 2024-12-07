@@ -80,8 +80,6 @@ impl Line {
     }
 
     fn value2(&self) -> usize {
-        //354060705047464
-        let mut ops_perms = Vec::new();
         let ops_count = self.numbers.len() - 1;
 
         for i in 0..(3.0_f64.powf(ops_count as f64) as usize) {
@@ -97,10 +95,21 @@ impl Line {
                 running /= 3;
             }
 
-            ops_perms.push(ops);
+            let res = ops.iter()
+            .enumerate()
+            .fold(self.numbers[0], |acc, (i, op)| {
+                if acc > self.result {
+                    acc
+                } else {
+                    op(acc, self.numbers[i + 1])
+                }
+            });
+            if res == self.result {
+                return  self.result;
+            }
         }
 
-        self.fun_name(ops_perms)
+        0
     }
 }
 
@@ -109,6 +118,7 @@ pub fn day_seven_one(inp: &str) -> usize {
 }
 
 pub fn day_seven_two(inp: &str) -> usize {
+    //354060705047464
     inp.lines().filter_map(Line::new).map(|l| l.value2()).sum()
 }
 
