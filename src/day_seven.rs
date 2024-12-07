@@ -7,7 +7,7 @@ struct Line {
 }
 
 fn concat(x: usize, y: usize) -> usize {
-    x * (10f64.powf(((y+1) as f64).log10().ceil()) as usize) + y
+    x * 10usize.pow(y.ilog10() + 1) + y
 }
 
 impl Line {
@@ -57,7 +57,7 @@ impl Line {
 
     fn value2(&self) -> usize {
         let ops_count = self.numbers.len() - 1;
-        for i in 0..(3.0_f64.powf(ops_count as f64) as usize) {
+        for i in 0..3usize.pow(ops_count as u32) {
             let mut running = i;
             let mut acc = self.numbers[0];
             for i in 0..ops_count {
