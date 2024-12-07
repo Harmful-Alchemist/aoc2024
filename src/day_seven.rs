@@ -1,15 +1,9 @@
-#[derive(Debug)]
+use std::thread::{self, JoinHandle};
+
+#[derive(Debug, Clone)]
 struct Line {
     result: usize,
     numbers: Vec<usize>,
-}
-
-fn add(x: usize, y: usize) -> usize {
-    x + y
-}
-
-fn mul(x: usize, y: usize) -> usize {
-    x * y
 }
 
 fn concat(x: usize, y: usize) -> usize {
@@ -38,74 +32,60 @@ impl Line {
     }
 
     fn value(&self) -> usize {
-        let mut ops_perms = Vec::new();
+        // let mut ops_perms = Vec::new();
         let ops_count = self.numbers.len() - 1;
 
         for i in 0..(1 << ops_count) {
-            let mut ops: Vec<fn(usize, usize) -> usize> = Vec::new();
+            let mut acc = self.numbers[0];
             for k in 0..ops_count {
                 let j = 1 << k;
                 if i & j > 0 {
-                    ops.push(add);
+                    acc += self.numbers[k + 1];
                 } else {
-                    ops.push(mul);
+                    acc *= self.numbers[k + 1];
+                }
+
+                if acc > self.result {
+                    break;
                 }
             }
-            ops_perms.push(ops);
+
+            if acc == self.result {
+                return self.result;
+            }
         }
 
-        self.fun_name(ops_perms)
-    }
-
-    fn fun_name(&self, ops_perms: Vec<Vec<fn(usize, usize) -> usize>>) -> usize {
-        if ops_perms
-            .into_iter()
-            .map(|ops| {
-                ops.iter()
-                    .enumerate()
-                    .fold(self.numbers[0], |acc, (i, op)| {
-                        if acc > self.result {
-                            acc
-                        } else {
-                            op(acc, self.numbers[i + 1])
-                        }
-                    })
-            })
-            .any(|x| x == self.result)
-        {
-            self.result
-        } else {
-            0
-        }
+        0
     }
 
     fn value2(&self) -> usize {
         let ops_count = self.numbers.len() - 1;
-
         for i in 0..(3.0_f64.powf(ops_count as f64) as usize) {
-            let mut ops: Vec<fn(usize, usize) -> usize> = Vec::new();
             let mut running = i;
-            for _ in 0..ops_count {
+            let mut acc = self.numbers[0];
+            for i in 0..ops_count {
                 match running % 3 {
-                    0 => ops.push(add),
-                    1 => ops.push(mul),
-                    2 => ops.push(concat),
+                    0 => {
+                        acc += self.numbers[i + 1];
+                    }
+                    1 => {
+                        acc *= self.numbers[i + 1];
+                    }
+                    2 => {
+                        acc = concat(acc, self.numbers[i + 1]);
+                    }
                     _ => panic!(),
                 }
+
+                if acc > self.result {
+                    break;
+                }
+
                 running /= 3;
             }
 
-            let res = ops.iter()
-            .enumerate()
-            .fold(self.numbers[0], |acc, (i, op)| {
-                if acc > self.result {
-                    acc
-                } else {
-                    op(acc, self.numbers[i + 1])
-                }
-            });
-            if res == self.result {
-                return  self.result;
+            if acc == self.result {
+                return self.result;
             }
         }
 
@@ -119,7 +99,13 @@ pub fn day_seven_one(inp: &str) -> usize {
 
 pub fn day_seven_two(inp: &str) -> usize {
     //354060705047464
-    inp.lines().filter_map(Line::new).map(|l| l.value2()).sum()
+    let mut handles: Vec<JoinHandle<usize>> = Vec::new();
+    inp.lines().filter_map(Line::new).for_each(|line| {
+        let handle = thread::spawn(move || line.value2());
+        handles.push(handle);
+    });
+
+    handles.into_iter().map(|h| h.join().unwrap()).sum()
 }
 
 #[cfg(test)]
