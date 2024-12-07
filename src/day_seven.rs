@@ -1,6 +1,6 @@
 use std::thread::{self, JoinHandle};
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 struct Line {
     result: usize,
     numbers: Vec<usize>,
@@ -62,10 +62,10 @@ impl Line {
             let mut acc = self.numbers[0];
             for i in 0..ops_count {
                 match running % 3 {
-                    0 => {
+                    1 => {
                         acc += self.numbers[i + 1];
                     }
-                    1 => {
+                    0 => {
                         acc *= self.numbers[i + 1];
                     }
                     2 => {
@@ -102,6 +102,8 @@ pub fn day_seven_two(inp: &str) -> usize {
     });
 
     handles.into_iter().map(|h| h.join().unwrap()).sum()
+
+    // inp.lines().filter_map(Line::new).map(|l| l.value2()).sum()
 }
 
 #[cfg(test)]
