@@ -1,11 +1,11 @@
 use std::collections::{HashMap, HashSet};
 
 pub fn day_eight_one(inp: &str) -> usize {
-    fun_name(inp, antinodes)
+    solve(inp, antinodes)
 }
 
 pub fn day_eight_two(inp: &str) -> usize {
-    fun_name(inp, antinodes2)
+    solve(inp, antinodes2)
 }
 
 type AntiNodeFn = fn(
@@ -17,7 +17,7 @@ type AntiNodeFn = fn(
     j_len: usize,
 ) -> Vec<(usize, usize)>;
 
-fn fun_name(inp: &str, antinodes: AntiNodeFn) -> usize {
+fn solve(inp: &str, antinodes: AntiNodeFn) -> usize {
     let mut antennas = HashMap::new();
     let mut i_len = 0;
     let mut j_len = 0;
