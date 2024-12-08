@@ -7,6 +7,9 @@ use std::{
     thread::{self, JoinHandle},
     time::Instant,
 };
+
+use day_eight::{day_eight_one, day_eight_two};
+mod day_eight;
 mod day_seven;
 
 fn main() {
@@ -31,6 +34,9 @@ fn main() {
 
     run(day_seven::day_seven_one, 7, 1);
     run(day_seven::day_seven_two, 7, 2);
+
+    run(day_eight_one, 8, 1);
+    run(day_eight_two, 8, 2);
 }
 
 fn run(f: fn(&str) -> usize, day: usize, part: usize) {
