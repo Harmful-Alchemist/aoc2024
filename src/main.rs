@@ -116,8 +116,8 @@ fn day_six_two(inp: &str) -> usize {
                 for x in &mut known {
                     x.resize_with(x_len, Vec::new);
                 }
-                guard_pos = orig_guard_pos;
-                current_dir = orig_dir;
+                let mut guard_pos = orig_guard_pos;
+                let mut current_dir = orig_dir;
                 let mut new_lab = lab.clone();
                 new_lab[x.0][x.1] = Pos::Obstacle;
                 while let Some(new_pos) = current_dir.new_pos(guard_pos, x_len, y_len) {
